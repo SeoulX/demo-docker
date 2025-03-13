@@ -29,3 +29,18 @@ build:
   script:
     - docker build -t $IMAGE_NAME:$IMAGE_TAG .
     - docker push $IMAGE_NAME:$IMAGE_TAG
+
+deploy:
+  stage: deploy
+  image: docker:28.0.1
+  services:
+    - docker:28.0.1-dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker pull $IMAGE_NAME:$IMAGE_TAG
+    - docker stop demo-docker || true 
+    - docker rm demo-docker || true
+    - docker run -d --name demo-docker-wdci-cd -p 3000:3000 $IMAGE_NAME:$IMAGE_TAG
+  only:
+    - main
