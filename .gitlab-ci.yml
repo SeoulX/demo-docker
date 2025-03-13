@@ -1,6 +1,6 @@
 variables:
-	IMAGE_NAME: aadinnr/demo-docker-rp
-	IMAGE_TAG: react-app-1.0
+  IMAGE_NAME: aadinnr/demo-docker-rp
+  IMAGE_TAG: react-app-1.0
 
 stages:
   - test
