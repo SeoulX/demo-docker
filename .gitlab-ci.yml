@@ -2,7 +2,7 @@ variables:
   IMAGE_NAME: aadinnr/demo-docker-rp
   IMAGE_TAG: react-app-1.0
   SSH_USER: ec2-user
-  SSH_HOST: 18.136.126.84
+  SSH_HOST: ec2-18-136-126-84.ap-southeast-1.compute.amazonaws.com
   SSH_KEY: $SSH_PRIVATE_KEY
 
 stages:
