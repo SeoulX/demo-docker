@@ -1,6 +1,9 @@
 variables:
   IMAGE_NAME: aadinnr/demo-docker-rp
   IMAGE_TAG: react-app-1.0
+  SSH_USER: ec2-user
+  SSH_HOST: 18.136.126.84
+  SSH_KEY: $SSH_PRIVATE_KEY
 
 stages:
   - test
@@ -32,15 +35,19 @@ build:
 
 deploy:
   stage: deploy
-  image: docker:28.0.1
-  services:
-    - docker:28.0.1-dind
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - chmod 400 $SSH_KEY
   script:
-    - docker pull $IMAGE_NAME:$IMAGE_TAG
-    - docker stop demo-docker-wdci-cd || true 
-    - docker rm demo-docker-wdci-cd || true
-    - docker run -d --name demo-docker-wdci-cd -p 3000:3000 $IMAGE_NAME:$IMAGE_TAG
+    - ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$SSH_HOST "
+        sudo yum update -y &&
+        sudo yum install -y docker &&
+        sudo systemctl start docker &&
+        sudo systemctl enable docker &&
+        sudo usermod -aG docker ec2-user &&
+        docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD &&
+        docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
+        docker pull $IMAGE_NAME:$IMAGE_TAG &&
+        docker run -d -p 3000:3000 --name react-app $IMAGE_NAME:$IMAGE_TAG
+      "
   only:
     - main
