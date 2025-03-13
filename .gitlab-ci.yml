@@ -36,20 +36,19 @@ build:
 deploy:
   stage: deploy
   before_script:
-    - chmod 400 $SSH_PRIVATE_KEY
+    - echo "$SSH_PRIVATE_KEY" > id_rsa
+    - chmod 400 id_rsa
   script:
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $SSH_USER@$SSH_HOST "
+    - ssh -o StrictHostKeyChecking=no -i id_rsa $SSH_USER@$SSH_HOST "
         sudo yum update -y &&
         sudo yum install -y docker &&
         sudo systemctl start docker &&
         sudo systemctl enable docker &&
         sudo usermod -aG docker ec2-user &&
-        newgrp docker << END
-          echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin &&
-          docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
-          docker pull $IMAGE_NAME:$IMAGE_TAG &&
-          docker run -d -p 3000:3000 --name react-app $IMAGE_NAME:$IMAGE_TAG
-        END
+        echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin &&
+        docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
+        docker pull $IMAGE_NAME:$IMAGE_TAG &&
+        docker run -d -p 3000:3000 --name react-app $IMAGE_NAME:$IMAGE_TAG
       "
   only:
     - main
