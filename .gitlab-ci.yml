@@ -36,11 +36,9 @@ build:
 deploy:
   stage: deploy
   before_script:
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 400 ~/.ssh/id_rsa
+    - chmod 400 $SSH_PRIVATE_KEY
   script:
-    - ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SSH_USER@$SSH_HOST "
+    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY $SSH_USER@$SSH_HOST "
         sudo yum update -y &&
         sudo yum install -y docker &&
         sudo systemctl start docker &&
