@@ -1,0 +1,20 @@
+# Define global variables
+variables:
+  NODE_ENV: "test"
+  IMAGE_NAME: "registry.gitlab.com/your-namespace/demo-docker"
+  DOCKER_TAG: "latest"
+
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  image: node:18
+  stage: test
+  before_script:
+    - npm install
+  script:
+    - npm test
+  only:
+    - main

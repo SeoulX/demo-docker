@@ -1,0 +1,49 @@
+# Define global variables
+variables:
+  NODE_ENV: "test"
+  IMAGE_NAME: "registry.gitlab.com/your-namespace/demo-docker"
+  DOCKER_TAG: "latest"
+
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  image: node:18
+  stage: test
+  before_script:
+    - npm install
+  script:
+    - npm test
+  only:
+    - main 
+
+build:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind  # Docker-in-Docker
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_NAME:$DOCKER_TAG .
+    - docker push $IMAGE_NAME:$DOCKER_TAG
+  only:
+    - main  # Run only on the main branch
+
+# 3️⃣ Deploy Stage (Deploys Container)
+deploy:
+  image: docker:latest
+  stage: deploy
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker pull $IMAGE_NAME:$DOCKER_TAG
+    - docker stop demo-docker || true  # Stop the old container
+    - docker rm demo-docker || true    # Remove the old container
+    - docker run -d --name demo-docker -p 3000:3000 $IMAGE_NAME:$DOCKER_TAG
+  only:
+    - main
